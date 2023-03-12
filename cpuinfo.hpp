@@ -35,7 +35,10 @@ public:
 	inline std::string vendor()        const { return mVendorId; }
 	inline std::string model()         const { return mModelName; }
 	inline int     cores()             const { return mNumCores; }
-	inline float   cpuSpeedInMHz()     const { return mCPUMHz; }
+	// WARNING! CPUID reports hardware CAPABILITIES. For Intel CPUs you will still get HT=on and logicalCpus() > cores() even if HT is OFF in the BIOS.
+	// Query the OS for actual correct runtime info.
+	inline int     logicalCpus()       const { return mNumLogCpus; }
+	inline bool    isHyperThreaded()   const { return mIsHTT; }
 	inline bool    isSSE()             const { return mIsSSE; }
 	inline bool    isSSE2()            const { return mIsSSE2; }
 	inline bool    isSSE3()            const { return mIsSSE3; }
@@ -43,8 +46,6 @@ public:
 	inline bool    isSSE42()           const { return mIsSSE42; }
 	inline bool    isAVX()             const { return mIsAVX; }
 	inline bool    isAVX2()            const { return mIsAVX2; }
-	inline bool    isHyperThreaded()   const { return mIsHTT; }
-	inline int     logicalCpus()       const { return mNumLogCpus; }
 
 private:
 	// Bit positions for data extractions
@@ -65,7 +66,6 @@ private:
 	int    mNumSMT = 0;
 	int    mNumCores = 0;
 	int    mNumLogCpus = 0;
-	float  mCPUMHz = 0;
 	bool   mIsHTT = 0;
 	bool   mIsSSE = false;
 	bool   mIsSSE2 = false;
@@ -112,12 +112,13 @@ CPUInfo::CPUInfo()
 				uint32_t currLevel = (LVL_TYPE & cpuID4.ECX()) >> 8;
 				switch (currLevel)
 				{
-				case 0x01: mNumSMT = LVL_CORES & cpuID4.EBX(); break;
-				case 0x02: mNumLogCpus = LVL_CORES & cpuID4.EBX(); break;
+				case 0x01: mNumSMT = LVL_CORES & cpuID4.EBX(); break; //  EAX=0xB, ECX=0 - EBX is the number of logical processors (threads) per core
+				case 0x02: mNumLogCpus = LVL_CORES & cpuID4.EBX(); break; // EAX=0xB, ECX=1 - EBX is the number of logical processors per processor package
 				default: break;
 				}
 			}
 			mNumCores = mNumLogCpus / mNumSMT;
+			mIsHTT = mNumSMT > 1;
 		}
 		else
 		{

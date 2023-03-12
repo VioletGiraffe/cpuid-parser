@@ -46,6 +46,7 @@ public:
 	inline bool    isSSE42()           const { return mIsSSE42; }
 	inline bool    isAVX()             const { return mIsAVX; }
 	inline bool    isAVX2()            const { return mIsAVX2; }
+	inline bool    isAVX512F()            const { return mIsAVX512F; }
 
 private:
 	// Bit positions for data extractions
@@ -56,6 +57,7 @@ private:
 	static constexpr uint32_t SSE42_POS = 0x00100000;
 	static constexpr uint32_t AVX_POS = 0x10000000;
 	static constexpr uint32_t AVX2_POS = 0x00000020;
+	static constexpr uint32_t AVX512F_POS = 1u << 15; // Bit 16
 	static constexpr uint32_t LVL_NUM = 0x000000FF;
 	static constexpr uint32_t LVL_TYPE = 0x0000FF00;
 	static constexpr uint32_t LVL_CORES = 0x0000FFFF;
@@ -74,6 +76,7 @@ private:
 	bool   mIsSSE42 = false;
 	bool   mIsAVX = false;
 	bool   mIsAVX2 = false;
+	bool   mIsAVX512F = false;
 };
 
 CPUInfo::CPUInfo()
@@ -97,6 +100,7 @@ CPUInfo::CPUInfo()
 	// Get AVX2 instructions availability
 	CPUID cpuID7(7, 0);
 	mIsAVX2 = cpuID7.EBX() & AVX2_POS;
+	mIsAVX512F = cpuID7.EBX() & AVX512F_POS;
 
 	std::string vendorIdUppercase = mVendorId;
 	std::for_each(vendorIdUppercase.begin(), vendorIdUppercase.end(), [](char& in) { in = static_cast<char>(::toupper(in)); });

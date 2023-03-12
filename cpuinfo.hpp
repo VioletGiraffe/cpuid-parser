@@ -39,14 +39,14 @@ public:
 	// Query the OS for actual correct runtime info.
 	inline int     logicalCpus()       const { return mNumLogCpus; }
 	inline bool    isHyperThreaded()   const { return mIsHTT; }
-	inline bool    isSSE()             const { return mIsSSE; }
-	inline bool    isSSE2()            const { return mIsSSE2; }
-	inline bool    isSSE3()            const { return mIsSSE3; }
-	inline bool    isSSE41()           const { return mIsSSE41; }
-	inline bool    isSSE42()           const { return mIsSSE42; }
-	inline bool    isAVX()             const { return mIsAVX; }
-	inline bool    isAVX2()            const { return mIsAVX2; }
-	inline bool    isAVX512F()            const { return mIsAVX512F; }
+	inline bool    haveSSE()           const { return mIsSSE; }
+	inline bool    haveSSE2()          const { return mIsSSE2; }
+	inline bool    haveSSE3()          const { return mIsSSE3; }
+	inline bool    haveSSE41()         const { return mIsSSE41; }
+	inline bool    haveSSE42()         const { return mIsSSE42; }
+	inline bool    haveAVX()           const { return mIsAVX; }
+	inline bool    haveAVX2()          const { return mIsAVX2; }
+	inline bool    haveAVX512F()       const { return mIsAVX512F; }
 
 private:
 	// Bit positions for data extractions

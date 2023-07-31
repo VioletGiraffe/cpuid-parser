@@ -10,12 +10,12 @@
 
 class CPUInfo {
 	class CPUID {
-		uint32_t regs[4];
+		uint32_t regs[4] = { 0 };
 
 	public:
 		inline explicit CPUID(uint32_t funcId, uint32_t subFuncId) {
 #ifdef _WIN32
-			__cpuidex((int*)regs, (int)funcId, (int)subFuncId);
+			::__cpuidex((int*)regs, (int)funcId, (int)subFuncId);
 #else
 			asm volatile
 				("cpuid" : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3])
@@ -103,7 +103,7 @@ CPUInfo::CPUInfo()
 	mIsAVX512F = cpuID7.EBX() & AVX512F_POS;
 
 	std::string vendorIdUppercase = mVendorId;
-	std::for_each(vendorIdUppercase.begin(), vendorIdUppercase.end(), [](char& in) { in = static_cast<char>(::toupper(in)); });
+	std::for_each(vendorIdUppercase.begin(), vendorIdUppercase.end(), [](char& character) { character = static_cast<char>(::toupper(character)); });
 	// Get num of cores
 	if (vendorIdUppercase.find("INTEL") != std::string::npos)
 	{
@@ -150,25 +150,24 @@ CPUInfo::CPUInfo()
 	}
 	else if (vendorIdUppercase.find("AMD") != std::string::npos)
 	{
-		if (HFS >= 1)
-		{
-			mNumLogCpus = (cpuID1.EBX() >> 16) & 0xFF;
-			if (CPUID(0x80000000, 0).EAX() >= 8)
-			{
-				mNumCores = 1 + (CPUID(0x80000008, 0).ECX() & 0xFF);
-			}
+		mNumSMT = 1 + ((CPUID(0x8000001e, 0).EBX() >> 8) & 0xff);
+		if (mNumLogCpus > 0 && mNumSMT > 0) {
+			mNumCores = mNumLogCpus / mNumSMT;
 		}
-		if (mIsHTT)
-		{
-			if (!(mNumCores > 1))
-			{
+		else {
+			if (HFS >= 1) {
+				if (CPUID(0x80000000, 0).EAX() >= 8) {
+					mNumCores = 1 + (CPUID(0x80000008, 0).ECX() & 0xFF);
+				}
+			}
+			if (mIsHTT) {
+				if (mNumCores < 1) {
+					mNumCores = 1;
+				}
+			}
+			else {
 				mNumCores = 1;
-				mNumLogCpus = (mNumLogCpus >= 2 ? mNumLogCpus : 2);
 			}
-		}
-		else
-		{
-			mNumCores = mNumLogCpus = 1;
 		}
 	}
 	else

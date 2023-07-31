@@ -150,6 +150,7 @@ CPUInfo::CPUInfo()
 	}
 	else if (vendorIdUppercase.find("AMD") != std::string::npos)
 	{
+		// From https://github.com/time-killer-games/ween/blob/db69cafca2222c634a1d3a9e58262b5a2dc8d508/system.cpp#L1469-L1528
 		mNumSMT = 1 + ((CPUID(0x8000001e, 0).EBX() >> 8) & 0xff);
 		if (mNumLogCpus > 0 && mNumSMT > 0) {
 			mNumCores = mNumLogCpus / mNumSMT;
